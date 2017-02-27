@@ -1,0 +1,97 @@
+#!/bin/bash
+#set -x
+
+export ANDROID_HOME=~/Library/Android/sdk
+
+export JAVA_HOME=$(/usr/libexec/java_home)
+
+app="TAB mobile Appium Server"
+me="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
+
+APP_NAME=tab.app
+
+case "$1" in
+  'setup')
+
+    echo ""
+    echo "Setting up the local workstation ..."
+    echo "Downloading dependencies ..."
+    echo ""
+
+    npm install
+
+    echo ""
+    ;;
+
+  'doctor')
+
+    echo ""
+    echo "Test local workstation ..."
+    echo ""
+
+    node_modules/.bin/appium-doctor
+
+    echo ""
+    ;;
+
+  'clean')
+
+    echo ""
+    echo "Cleaning ..."
+    echo ""
+
+    rm -rf node_modules
+    rm -rf build
+
+    echo ""
+    ;;
+
+  'android')
+
+    echo ""
+    echo "Starting up server for android ..."
+    echo ""
+
+    node_modules/.bin/appium \
+        --command-timeout "7200" --session-override --debug-log-spacing --log-timestamp --local-timezone \
+		--device-name "Galaxy_Nexus_API_23" \
+        --platform-name "Android" \
+		--platform-version "7.0" \
+        --avd "Galaxy_Nexus_API_23" \
+        --pre-launch \
+        --app "$PWD/candidate/android/DrawerFrameworkApp-debug.apk"
+
+    ;;
+
+  'ios')
+
+      echo ""
+      echo "Starting up server for ios ..."
+      echo ""
+
+      node_modules/.bin/appium \
+          --command-timeout "7200" --session-override --full-reset --pre-launch --debug-log-spacing --log-timestamp --local-timezone \
+          --platform-version "9.1" --platform-name "iOS" --device-name "iPhone 6" \
+          --app "$PWD/build/ios/$APP_NAME"
+
+
+      ;;
+
+  *)
+    echo -e ""
+    echo "Usage:"
+    echo ""
+    echo "    $(tput setaf 5)$me$(tput sgr0) <command>"
+    echo ""
+    echo "Commands:"
+    echo ""
+    echo "    setup                         Setups the local workstation and Downloads dependencies"
+    echo "    doctor                        Test local workstation"
+    echo "    clean                         Cleans all generated files"
+    echo ""
+    echo "    ios                           Starts the server for ios"
+    echo "    android                       Starts the server for android"
+    echo ""
+    ;;
+
+esac
